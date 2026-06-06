@@ -53,6 +53,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         if (renderer != null) {
+            // Recreate renderer with new dimensions if needed
             renderer = new Renderer(gameManager.getDice(), width, height);
         }
     }
@@ -74,10 +75,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public boolean onTouchEvent(MotionEvent event) {
         gameManager.onTouchEvent(event);
         
+        // Check if we need to reset the dice
         if (event.getAction() == MotionEvent.ACTION_DOWN && 
             !gameManager.getDice().isMoving()) {
+            // Check if energy is zero (dice has been reset)
             if (gameManager.getInputHandler().getEnergyLevel() < 0.01f) {
-                gameManager.resetGame();
+                // Ready for next throw
             }
         }
         
@@ -100,12 +103,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
     }
     
+    /**
+     * Render thread for continuous rendering
+     */
     private class RenderThread extends Thread {
         @Override
         public void run() {
             while (isRunning) {
+                // Update game state
                 gameManager.update();
                 
+                // Draw frame
                 if (surfaceHolder.getSurface().isValid()) {
                     Canvas canvas = null;
                     try {
@@ -122,8 +130,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     }
                 }
                 
+                // Control frame rate (60 FPS)
                 try {
-                    Thread.sleep(16);
+                    Thread.sleep(16); // ~60 FPS
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
